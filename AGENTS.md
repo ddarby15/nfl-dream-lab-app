@@ -10,6 +10,20 @@ At the start of relevant project work, read:
 Keep these files concise and grounded in repository evidence. Update them when work materially changes the project state, establishes or supersedes a durable decision, or exposes or resolves an important question. Do not duplicate routine implementation details or Git history.
 <!-- project-memory:end -->
 
+## Coding style and audience
+
+- Write code for an intermediate Python and data-science reader who will inspect, modify, and debug it manually.
+- Prefer simple, explicit, top-to-bottom code over clever or highly abstract code.
+- Use the fewest libraries necessary. Prefer pandas, the Python standard library, and existing project utilities when they are sufficient.
+- Do not introduce frameworks, classes, generalized helper systems, or additional dependencies unless the task clearly requires them.
+- Keep exploratory transformations visible in notebooks while the logic is still being understood.
+- Extract reusable functions only when repetition, testing, or correctness provides a clear reason to do so.
+- Use descriptive variable names and small, focused notebook cells.
+- Add concise comments that explain major steps, important assumptions, non-obvious transformations, and grain, join, or validation decisions. Do not comment obvious syntax or every individual line.
+- Organize analytical notebooks in a readable flow: load, inspect, transform, validate, and persist or summarize.
+- Before introducing a substantially more complex implementation, explain why the simpler approach is insufficient.
+- Keep production-ready code readable and direct; production quality does not require unnecessary abstraction.
+
 ## Project direction
 
 Before relevant project work, read `ROADMAP.md`. Treat it as the source of truth for the product architecture, development sequence, current phase, phase deliverables, and exit criteria.

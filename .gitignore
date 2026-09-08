@@ -217,5 +217,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Local generated datasets
+/data/
+
 # Project memory
 /.project-memory/

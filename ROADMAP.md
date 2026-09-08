@@ -84,7 +84,7 @@ Bronze and Silver are shared foundations. They must not be duplicated for indivi
 
 - Primary data source: nflverse through `nflreadpy`
 - Language: Python
-- DataFrames: Polars where practical; any pandas conversion should be deliberate and consistent
+- DataFrames: `nflreadpy` loads Polars DataFrames; Phase 1 notebooks convert them deliberately to pandas for `eda_utils` profiling and transformations
 - Development storage: local Parquet files
 - Research: Jupyter notebooks
 - Initial application: Streamlit
@@ -148,27 +148,34 @@ Understand nflverse data and prototype the Bronze → Silver → Gold flow in Ju
 
 ### Dependencies
 
-- A working Python notebook environment
+- The existing `sports_dev_env` Conda environment
 - Access to the required nflverse datasets through `nflreadpy`
-- Initial decisions about supported seasons and fantasy scoring conventions before final Gold validation
+- The initial 2023–2025 season scope
+- Full PPR as the default scoring format, with scoring-neutral components retained for future half-PPR support
 
 ### Notebook milestones
 
 #### 1. Source and schema inventory
+
+**Status: Completed 2026-09-07**
 
 - Inspect available `nflreadpy` loaders and returned Polars schemas.
 - Record source grains, identifiers, coverage, update behavior, and key nullability.
 - Determine which sources are required for the first WR, RB, and QB metrics.
 - Identify joins and known source limitations before persisting data.
 
-**Recommended first task:** create `notebooks/bronze/01_nflverse_source_inventory.ipynb` when implementation begins.
+The executed inventory is in `notebooks/bronze/01_nflverse_source_inventory.ipynb`. It loaded all seven candidate sources, identified the initial WR source set and candidate grains, and documented identifier, memory, and source-quality caveats before Bronze persistence.
 
 #### 2. Bronze ingestion prototypes
+
+**Status: Completed 2026-09-07**
 
 - Extract the smallest useful set of seasons and source datasets.
 - Persist source-oriented local Parquet datasets with minimal transformation.
 - Validate row counts, partitions, schemas, uniqueness expectations, and reload behavior.
 - Keep source metadata needed to reproduce or audit an extraction.
+
+The core non-PBP sources are persisted by `notebooks/bronze/02_bronze_core_sources.ipynb`, and `notebooks/bronze/03_bronze_play_by_play.ipynb` persists play-by-play one season at a time. Together they provide the initial 2023–2025 Bronze inputs for the WR slice.
 
 Candidate Bronze data:
 
@@ -457,10 +464,9 @@ The exact Streamlit application directory and Python package layout should be co
 15. Prevent future-data leakage in weekly and rolling features.
 16. Build only the infrastructure required by the current phase.
 
-## Open Questions Before Phase 1 Implementation
+## Open Questions During Phase 1
 
-- Which NFL seasons should the first source inventory and starter datasets cover?
-- Which fantasy scoring conventions should V1 support, including reception scoring and passing-touchdown values?
+- Which non-reception scoring rules should complement the full-PPR default, including passing-touchdown, interception, yardage, turnover, conversion, and bonus values?
 - Which source-specific licensing, attribution, freshness, and availability constraints must be reflected in storage or distribution?
 - What is the canonical definition of a fantasy week for late corrections, rescheduled games, and multi-team player records?
 - Which minimum participation and sample-size rules should govern rankings, percentiles, and trend signals?
