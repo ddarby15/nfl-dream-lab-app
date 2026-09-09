@@ -188,18 +188,26 @@ Candidate Bronze data:
 
 #### 3. Identity, participation, and grain validation
 
+**Status: Completed 2026-09-08**
+
 - Establish the canonical player identifier and inspect cross-source identifier coverage.
 - Validate player/team/week relationships, including team changes and traded players.
 - Define game and weekly participation rules.
 - Document duplicate, inactive-player, missing-team, and multi-team edge cases.
 
+The executed validation is in `notebooks/silver/01_player_identity_participation_grain_validation.ipynb`. It establishes exact GSIS identity, a validated PFR-to-GSIS bridge for snap counts, contextual weekly positions, snap-based participation rules, and the `player_id + season + week + team` grain for the initial WR slice. It also records the unresolved Cody White snap identifier, roster-only identities missing from the current player master, and observed position disagreements without applying name-based repairs or writing Silver data.
+
 #### 4. Shared Silver prototypes
+
+**Status: In progress — player participation and weekly facts completed 2026-09-09**
 
 - Prototype `silver_player_week` at `player_id + season + week + team`.
 - Prototype `silver_player_game_participation` at `player_id + game_id`.
 - Prototype `silver_team_week_opportunity` at `team + season + week`.
 - Standardize the play classifications and denominators required by downstream shares.
 - Add checks for unique grains, valid relationships, and plausible totals.
+
+`notebooks/silver/02_shared_player_participation_and_week.ipynb` builds and validates the first two shared datasets for all identified players while retaining the WR slice as the primary validation lens. It writes season-partitioned player-game participation and player-week Parquet files, reconciles selected statistics and snap totals to Bronze, and preserves source-specific positions, nullable participation, and identity exceptions. Team-week opportunity and standardized play classifications remain for the next shared Silver notebook.
 
 #### 5. Position-level Silver facts
 
