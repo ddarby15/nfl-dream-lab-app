@@ -199,7 +199,7 @@ The executed validation is in `notebooks/silver/01_player_identity_participation
 
 #### 4. Shared Silver prototypes
 
-**Status: In progress — player participation and weekly facts completed 2026-09-09**
+**Status: Completed 2026-09-14**
 
 - Prototype `silver_player_week` at `player_id + season + week + team`.
 - Prototype `silver_player_game_participation` at `player_id + game_id`.
@@ -207,7 +207,7 @@ The executed validation is in `notebooks/silver/01_player_identity_participation
 - Standardize the play classifications and denominators required by downstream shares.
 - Add checks for unique grains, valid relationships, and plausible totals.
 
-`notebooks/silver/02_shared_player_participation_and_week.ipynb` builds and validates the first two shared datasets for all identified players while retaining the WR slice as the primary validation lens. It writes season-partitioned player-game participation and player-week Parquet files, reconciles selected statistics and snap totals to Bronze, and preserves source-specific positions, nullable participation, and identity exceptions. Team-week opportunity and standardized play classifications remain for the next shared Silver notebook.
+`notebooks/silver/02_shared_player_participation_and_week.ipynb` builds and validates shared player-game participation and player-week facts for all identified players while retaining the WR slice as the primary validation lens. `notebooks/silver/03_standardized_plays_and_team_week_opportunity.ipynb` then preserves the complete PBP grain with canonical opportunity flags and aggregates those flags into 1,710 team-week denominator rows. Together the notebooks write twelve season-partitioned Silver files, validate explicit grains and schedule relationships, and retain source-specific identity, participation, position, and PBP reconciliation exceptions.
 
 #### 5. Position-level Silver facts
 
