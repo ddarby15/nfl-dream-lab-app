@@ -12,7 +12,7 @@ NFL Dream Lab is currently in **Phase 1 — Notebook Data Pipeline Prototyping**
 
 The immediate focus is to understand nflverse data, validate metric definitions against real players, and produce reliable starter Bronze, Silver, and Gold datasets through Jupyter notebooks.
 
-See [ROADMAP.md](ROADMAP.md) for the complete architecture, development sequence, deliverables, and exit criteria.
+See [ROADMAP.md](ROADMAP.md) for the complete architecture, development sequence, deliverables, and exit criteria. The working [data lineage](docs/data-lineage-by-gold-product.md) shows how nflverse sources evolve through the implemented and planned data layers.
 
 ## Product Areas
 
