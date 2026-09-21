@@ -6,6 +6,8 @@ Last updated: 2026-09-14
 
 This is the canonical working data lineage for NFL Dream Lab. It presents the pipeline as four focused views, repeating relevant upstream layers so each Gold product can be followed without tracing a large web of crossing lines.
 
+For a quick view of column counts entering and leaving each implemented step, see the companion [schema flow](schema-evolution.md).
+
 The diagrams show the current 2023–2025 direction. Green nodes are implemented and persisted, gray dashed nodes are planned, and purple dashed nodes are optional. The notebooks import `nflreadpy as nfl`, so the source calls below use that exact alias. Implemented nodes list the current Parquet filenames; planned nodes explicitly say when a physical filename has not been established.
 
 ## 1. Shared data foundation
