@@ -211,10 +211,18 @@ The executed validation is in `notebooks/silver/01_player_identity_participation
 
 #### 5. Position-level Silver facts
 
+**Status: Completed 2026-09-28**
+
 - Prototype WR, RB, and QB weekly facts only where a shared table cannot express the facts clearly.
 - Validate passing, rushing, receiving, red-zone, goal-line, and air-yard concepts.
 - Explicitly define meaningful QB rush attempts and the treatment of kneel-downs.
 - Confirm that position-specific facts reuse the shared Silver foundation.
+
+`notebooks/silver/04_wr_weekly_facts.ipynb` creates 8,881 WR-week rows across three season-partitioned files at `player_id + season + week + team`. It preserves nullable weekly-stat evidence, adds observed PBP opportunity counts, attaches team denominators, and validates eight transparent same-week shares.
+
+`notebooks/silver/05_rb_weekly_facts.ipynb` creates 5,826 contextual RB/FB player-weeks across three 62-column season partitions at the same weekly grain. It separates official production from canonical rushing and receiving opportunity, validates nine same-week shares, and retains the previously documented 2024 Week 15 source disagreement instead of silently reconciling it.
+
+`notebooks/silver/06_qb_weekly_facts.ipynb` completes the milestone with 2,163 contextual QB player-weeks across three 71-column season partitions. It assigns every canonical dropback through explicit passer-or-rusher identity, separates kneels, scrambles, designed runs, and meaningful QB rushes, validates seven same-week shares, and retains the previously documented 2025 Week 2 passing-attempt disagreement.
 
 #### 6. Historical Draft Gold features
 

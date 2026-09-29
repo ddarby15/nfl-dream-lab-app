@@ -1,6 +1,6 @@
 # NFL Dream Lab Data Lineage
 
-Last updated: 2026-09-14
+Last updated: 2026-09-28
 
 ## Purpose
 
@@ -27,8 +27,10 @@ flowchart TB
         S_WEEK["data/silver/player_week/player_week_2023.parquet<br/>data/silver/player_week/player_week_2024.parquet<br/>data/silver/player_week/player_week_2025.parquet<br/>grain: player_id + season + week + team"]
     end
 
-    subgraph PlannedSilver["Shared Silver — planned"]
-        S_POSITION["WR, RB, and QB weekly facts<br/>physical filenames not established"]
+    subgraph PositionSilver["Position Silver"]
+        S_WR["data/silver/wr_week/wr_week_2023.parquet<br/>data/silver/wr_week/wr_week_2024.parquet<br/>data/silver/wr_week/wr_week_2025.parquet<br/>grain: player_id + season + week + team"]
+        S_RB["data/silver/rb_week/rb_week_2023.parquet<br/>data/silver/rb_week/rb_week_2024.parquet<br/>data/silver/rb_week/rb_week_2025.parquet<br/>grain: player_id + season + week + team"]
+        S_QB["data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet<br/>grain: player_id + season + week + team"]
     end
 
     subgraph NewSilver["Shared Silver — implemented play and opportunity facts"]
@@ -41,10 +43,15 @@ flowchart TB
     CONTRACTS --> S_WEEK
     B_FILES --> S_PLAYS
     S_PLAYS --> S_TEAM
-    S_WEEK -.-> S_POSITION
-    S_GAME -.-> S_POSITION
-    S_PLAYS -.-> S_POSITION
-    S_TEAM -.-> S_POSITION
+    S_WEEK --> S_WR
+    S_PLAYS --> S_WR
+    S_TEAM --> S_WR
+    S_WEEK --> S_RB
+    S_PLAYS --> S_RB
+    S_TEAM --> S_RB
+    S_WEEK --> S_QB
+    S_PLAYS --> S_QB
+    S_TEAM --> S_QB
 
     classDef source fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
     classDef built fill:#d1fae5,stroke:#047857,color:#064e3b;
@@ -52,9 +59,8 @@ flowchart TB
     classDef planned fill:#f3f4f6,stroke:#6b7280,color:#374151,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_GAME,S_WEEK,S_PLAYS,S_TEAM built;
+    class B_FILES,S_GAME,S_WEEK,S_PLAYS,S_TEAM,S_WR,S_RB,S_QB built;
     class CONTRACTS validation;
-    class S_POSITION planned;
 ```
 
 ## 2. Draft Analysis Gold lineage
@@ -69,7 +75,9 @@ flowchart TB
     subgraph Silver["Relevant Silver foundation"]
         S_SHARED["Implemented shared facts<br/><br/>data/silver/player_game_participation/player_game_participation_2023.parquet<br/>data/silver/player_game_participation/player_game_participation_2024.parquet<br/>data/silver/player_game_participation/player_game_participation_2025.parquet<br/><br/>data/silver/player_week/player_week_2023.parquet<br/>data/silver/player_week/player_week_2024.parquet<br/>data/silver/player_week/player_week_2025.parquet"]
         S_OPPORTUNITY["Implemented play and team opportunity facts<br/><br/>data/silver/standardized_plays/standardized_plays_2023.parquet<br/>data/silver/standardized_plays/standardized_plays_2024.parquet<br/>data/silver/standardized_plays/standardized_plays_2025.parquet<br/><br/>data/silver/team_week_opportunity/team_week_opportunity_2023.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2024.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2025.parquet"]
-        S_POSITION["Planned position-week facts<br/>WR · RB · QB<br/>physical filenames not established"]
+        S_WR["Implemented WR weekly facts<br/>data/silver/wr_week/wr_week_2023.parquet<br/>data/silver/wr_week/wr_week_2024.parquet<br/>data/silver/wr_week/wr_week_2025.parquet<br/>grain: player_id + season + week + team"]
+        S_RB["Implemented RB weekly facts<br/>data/silver/rb_week/rb_week_2023.parquet<br/>data/silver/rb_week/rb_week_2024.parquet<br/>data/silver/rb_week/rb_week_2025.parquet<br/>grain: player_id + season + week + team"]
+        S_QB["Implemented QB weekly facts<br/>data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet<br/>grain: player_id + season + week + team"]
     end
 
     subgraph DraftGold["Draft Analysis Gold — planned player-season features"]
@@ -82,11 +90,15 @@ flowchart TB
 
     SOURCE --> B_FILES --> S_SHARED
     B_FILES --> S_OPPORTUNITY
-    S_SHARED -.-> S_POSITION
-    S_OPPORTUNITY -.-> S_POSITION
-    S_POSITION -.-> G_WR
-    S_POSITION -.-> G_RB
-    S_POSITION -.-> G_QB
+    S_SHARED --> S_WR
+    S_OPPORTUNITY --> S_WR
+    S_SHARED --> S_RB
+    S_OPPORTUNITY --> S_RB
+    S_SHARED --> S_QB
+    S_OPPORTUNITY --> S_QB
+    S_WR -.-> G_WR
+    S_RB -.-> G_RB
+    S_QB -.-> G_QB
     G_WR -.-> DRAFT
     G_RB -.-> DRAFT
     G_QB -.-> DRAFT
@@ -96,8 +108,8 @@ flowchart TB
     classDef planned fill:#f3f4f6,stroke:#6b7280,color:#374151,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_SHARED,S_OPPORTUNITY built;
-    class S_POSITION,G_WR,G_RB,G_QB,DRAFT planned;
+    class B_FILES,S_SHARED,S_OPPORTUNITY,S_WR,S_RB,S_QB built;
+    class G_WR,G_RB,G_QB,DRAFT planned;
 ```
 
 Expected Draft features include validated volume, opportunity share, production, efficiency, scoring, and games-played context appropriate to each position. Exact feature definitions and dependencies will be established in future notebooks.
@@ -116,7 +128,9 @@ flowchart TB
         S_GAME["data/silver/player_game_participation/player_game_participation_2023.parquet<br/>data/silver/player_game_participation/player_game_participation_2024.parquet<br/>data/silver/player_game_participation/player_game_participation_2025.parquet"]
         S_PLAYS["data/silver/standardized_plays/standardized_plays_2023.parquet<br/>data/silver/standardized_plays/standardized_plays_2024.parquet<br/>data/silver/standardized_plays/standardized_plays_2025.parquet"]
         S_TEAM["data/silver/team_week_opportunity/team_week_opportunity_2023.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2024.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2025.parquet"]
-        S_POSITION["Planned position-week facts<br/>physical filenames not established"]
+        S_WR["data/silver/wr_week/wr_week_2023.parquet<br/>data/silver/wr_week/wr_week_2024.parquet<br/>data/silver/wr_week/wr_week_2025.parquet<br/>WR production, opportunity, and shares"]
+        S_RB["data/silver/rb_week/rb_week_2023.parquet<br/>data/silver/rb_week/rb_week_2024.parquet<br/>data/silver/rb_week/rb_week_2025.parquet<br/>RB production, opportunity, and shares"]
+        S_QB["data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet<br/>QB production, dropbacks, and meaningful rushing"]
     end
 
     TRENDS["Time-safe feature calculations<br/>current week · prior 3 weeks · season to date"]
@@ -127,12 +141,21 @@ flowchart TB
     B_FILES --> S_WEEK
     B_FILES --> S_GAME
     B_FILES --> S_PLAYS --> S_TEAM
-    S_WEEK -.-> S_POSITION
-    S_TEAM -.-> S_POSITION
+    S_WEEK --> S_WR
+    S_PLAYS --> S_WR
+    S_TEAM --> S_WR
+    S_WEEK --> S_RB
+    S_PLAYS --> S_RB
+    S_TEAM --> S_RB
+    S_WEEK --> S_QB
+    S_PLAYS --> S_QB
+    S_TEAM --> S_QB
     S_WEEK -.-> TRENDS
     S_GAME -.-> TRENDS
     S_TEAM -.-> TRENDS
-    S_POSITION -.-> TRENDS
+    S_WR -.-> TRENDS
+    S_RB -.-> TRENDS
+    S_QB -.-> TRENDS
     TRENDS -.-> G_WAIVER -.-> WAIVER
 
     classDef source fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
@@ -140,8 +163,8 @@ flowchart TB
     classDef planned fill:#f3f4f6,stroke:#6b7280,color:#374151,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_WEEK,S_GAME,S_PLAYS,S_TEAM built;
-    class S_POSITION,TRENDS,G_WAIVER,WAIVER planned;
+    class B_FILES,S_WEEK,S_GAME,S_PLAYS,S_TEAM,S_WR,S_RB,S_QB built;
+    class TRENDS,G_WAIVER,WAIVER planned;
 ```
 
 The rolling feature step must use only the current and earlier weeks available at each row. Initial signals should remain transparent—for example, rising usage or high opportunity with low production—rather than becoming an unexplained composite score.
@@ -156,7 +179,9 @@ flowchart TB
     B_FILES["Exact nflreadpy calls → Bronze files<br/><br/>nfl.load_players()<br/>→ data/bronze/players/players.parquet<br/><br/>nfl.load_schedules(seasons=[season])<br/>→ data/bronze/schedules/schedules_2023.parquet<br/>→ data/bronze/schedules/schedules_2024.parquet<br/>→ data/bronze/schedules/schedules_2025.parquet<br/><br/>nfl.load_player_stats(seasons=[season], summary_level='week')<br/>→ data/bronze/player_stats_weekly/player_stats_weekly_2023.parquet<br/>→ data/bronze/player_stats_weekly/player_stats_weekly_2024.parquet<br/>→ data/bronze/player_stats_weekly/player_stats_weekly_2025.parquet<br/><br/>nfl.load_rosters_weekly(seasons=[season])<br/>→ data/bronze/rosters_weekly/rosters_weekly_2023.parquet<br/>→ data/bronze/rosters_weekly/rosters_weekly_2024.parquet<br/>→ data/bronze/rosters_weekly/rosters_weekly_2025.parquet<br/><br/>nfl.load_snap_counts(seasons=[season])<br/>→ data/bronze/snap_counts/snap_counts_2023.parquet<br/>→ data/bronze/snap_counts/snap_counts_2024.parquet<br/>→ data/bronze/snap_counts/snap_counts_2025.parquet<br/><br/>nfl.load_pbp(seasons=[season])<br/>→ data/bronze/pbp/pbp_2023.parquet<br/>→ data/bronze/pbp/pbp_2024.parquet<br/>→ data/bronze/pbp/pbp_2025.parquet"]
     S_CURRENT["Implemented shared Silver<br/><br/>data/silver/player_game_participation/player_game_participation_2023.parquet<br/>data/silver/player_game_participation/player_game_participation_2024.parquet<br/>data/silver/player_game_participation/player_game_participation_2025.parquet<br/><br/>data/silver/player_week/player_week_2023.parquet<br/>data/silver/player_week/player_week_2024.parquet<br/>data/silver/player_week/player_week_2025.parquet"]
     S_OPPORTUNITY["Implemented opportunity Silver<br/><br/>data/silver/standardized_plays/standardized_plays_2023.parquet<br/>data/silver/standardized_plays/standardized_plays_2024.parquet<br/>data/silver/standardized_plays/standardized_plays_2025.parquet<br/><br/>data/silver/team_week_opportunity/team_week_opportunity_2023.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2024.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2025.parquet"]
-    S_POSITION["Planned WR, RB, and QB weekly facts<br/>physical filenames not established"]
+    S_WR["Implemented WR weekly facts<br/>data/silver/wr_week/wr_week_2023.parquet<br/>data/silver/wr_week/wr_week_2024.parquet<br/>data/silver/wr_week/wr_week_2025.parquet"]
+    S_RB["Implemented RB weekly facts<br/>data/silver/rb_week/rb_week_2023.parquet<br/>data/silver/rb_week/rb_week_2024.parquet<br/>data/silver/rb_week/rb_week_2025.parquet"]
+    S_QB["Implemented QB weekly facts<br/>data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet"]
 
     subgraph ExistingGoldShapes["Planned reusable Gold products"]
         G_DRAFT["gold/draft/wr_season_features<br/>gold/draft/rb_season_features<br/>gold/draft/qb_season_features<br/>grain: player_id + season<br/>physical filenames not established"]
@@ -172,10 +197,18 @@ flowchart TB
     S_CURRENT -.-> G_WAIVER
     S_OPPORTUNITY -.-> G_DRAFT
     S_OPPORTUNITY -.-> G_WAIVER
-    S_CURRENT -.-> S_POSITION
-    S_OPPORTUNITY -.-> S_POSITION
-    S_POSITION -.-> G_DRAFT
-    S_POSITION -.-> G_WAIVER
+    S_CURRENT --> S_WR
+    S_OPPORTUNITY --> S_WR
+    S_CURRENT --> S_RB
+    S_OPPORTUNITY --> S_RB
+    S_CURRENT --> S_QB
+    S_OPPORTUNITY --> S_QB
+    S_WR -.-> G_DRAFT
+    S_WR -.-> G_WAIVER
+    S_RB -.-> G_DRAFT
+    S_RB -.-> G_WAIVER
+    S_QB -.-> G_DRAFT
+    S_QB -.-> G_WAIVER
     G_DRAFT -.-> EXPLORER
     G_WAIVER -.-> EXPLORER
     G_DRAFT -.-> G_HISTORY
@@ -188,8 +221,8 @@ flowchart TB
     classDef optional fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_CURRENT,S_OPPORTUNITY built;
-    class S_POSITION,G_DRAFT,G_WAIVER,EXPLORER planned;
+    class B_FILES,S_CURRENT,S_OPPORTUNITY,S_WR,S_RB,S_QB built;
+    class G_DRAFT,G_WAIVER,EXPLORER planned;
     class G_HISTORY optional;
 ```
 
