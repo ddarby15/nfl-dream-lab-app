@@ -226,10 +226,18 @@ The executed validation is in `notebooks/silver/01_player_identity_participation
 
 #### 6. Historical Draft Gold features
 
+**Status: Completed 2026-09-29**
+
 - Aggregate validated weekly facts into player-season WR, RB, and QB profiles.
 - Include volume, share, efficiency, scoring, and games-played context appropriate to each position.
 - Validate calculations against recognizable player seasons and source totals.
 - Document every metric's numerator, denominator, grain, and null-handling behavior.
+
+`notebooks/gold/01_wr_draft_season_features.ipynb` creates the first Draft Gold product from the amended 61-column WR Silver facts. It writes 753 regular-season WR player profiles across three 85-column season partitions at `player_id + season`, combines multi-team seasons, retains all observed WR seasons, applies explicit full-PPR scoring, and limits within-season percentiles to the approved eight-game and 40-target comparison population.
+
+`notebooks/gold/02_rb_draft_season_features.ipynb` extends the same auditable season-profile pattern to contextual RB and FB facts. It writes 498 regular-season player profiles across three 98-column season partitions, preserves official carries separately from canonical non-kneel and designed rushing opportunity, applies the shared full-PPR contract, and limits percentiles to seasons with at least eight observed games and 50 total opportunities.
+
+`notebooks/gold/03_qb_draft_season_features.ipynb` completes the historical Draft Gold milestone with 245 regular-season QB profiles across three 107-column season partitions. It preserves official production separately from canonical complete dropbacks and meaningful rushing, applies the approved four-point passing-touchdown full-PPR contract, and limits percentiles to seasons with at least eight observed games and 200 complete dropbacks.
 
 #### 7. Weekly Waiver and Player Explorer features
 

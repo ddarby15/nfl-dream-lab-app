@@ -59,6 +59,7 @@ Before relevant project work, read `ROADMAP.md`. Treat it as the source of truth
 - Use Polars where practical. If pandas is introduced, make conversions deliberate and consistent.
 - Use local Parquet storage during the initial phases unless a demonstrated requirement justifies another system.
 - Do not commit generated NFL datasets, large local artifacts, credentials, or secrets unless the user explicitly requests and approves that scope.
+- Treat `notebooks/adhoc/` as owner-managed, local-only scratch space. Do not edit it, use it as pipeline evidence, or create production dependencies on it unless the user explicitly requests that scope.
 - Preserve unrelated worktree changes and avoid broad formatting or structural churn.
 
 ## Documentation maintenance

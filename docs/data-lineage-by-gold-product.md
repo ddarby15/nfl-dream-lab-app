@@ -1,6 +1,6 @@
 # NFL Dream Lab Data Lineage
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 ## Purpose
 
@@ -46,6 +46,7 @@ flowchart TB
     S_WEEK --> S_WR
     S_PLAYS --> S_WR
     S_TEAM --> S_WR
+    B_FILES -->|team passing air yards| S_WR
     S_WEEK --> S_RB
     S_PLAYS --> S_RB
     S_TEAM --> S_RB
@@ -80,10 +81,10 @@ flowchart TB
         S_QB["Implemented QB weekly facts<br/>data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet<br/>grain: player_id + season + week + team"]
     end
 
-    subgraph DraftGold["Draft Analysis Gold — planned player-season features"]
-        G_WR["gold/draft/wr_season_features<br/>grain: player_id + season<br/>physical filename not established"]
-        G_RB["gold/draft/rb_season_features<br/>grain: player_id + season<br/>physical filename not established"]
-        G_QB["gold/draft/qb_season_features<br/>grain: player_id + season<br/>physical filename not established"]
+    subgraph DraftGold["Draft Analysis Gold — player-season features"]
+        G_WR["Implemented WR season features<br/>data/gold/draft/wr_season_features/wr_season_features_2023.parquet<br/>data/gold/draft/wr_season_features/wr_season_features_2024.parquet<br/>data/gold/draft/wr_season_features/wr_season_features_2025.parquet<br/>grain: player_id + season"]
+        G_RB["Implemented RB/FB season features<br/>data/gold/draft/rb_season_features/rb_season_features_2023.parquet<br/>data/gold/draft/rb_season_features/rb_season_features_2024.parquet<br/>data/gold/draft/rb_season_features/rb_season_features_2025.parquet<br/>grain: player_id + season"]
+        G_QB["Implemented QB season features<br/>data/gold/draft/qb_season_features/qb_season_features_2023.parquet<br/>data/gold/draft/qb_season_features/qb_season_features_2024.parquet<br/>data/gold/draft/qb_season_features/qb_season_features_2025.parquet<br/>grain: player_id + season"]
     end
 
     DRAFT["Draft Analysis<br/>historical profiles and comparisons"]
@@ -92,13 +93,14 @@ flowchart TB
     B_FILES --> S_OPPORTUNITY
     S_SHARED --> S_WR
     S_OPPORTUNITY --> S_WR
+    B_FILES -->|team passing air yards| S_WR
     S_SHARED --> S_RB
     S_OPPORTUNITY --> S_RB
     S_SHARED --> S_QB
     S_OPPORTUNITY --> S_QB
-    S_WR -.-> G_WR
-    S_RB -.-> G_RB
-    S_QB -.-> G_QB
+    S_WR --> G_WR
+    S_RB --> G_RB
+    S_QB --> G_QB
     G_WR -.-> DRAFT
     G_RB -.-> DRAFT
     G_QB -.-> DRAFT
@@ -108,11 +110,11 @@ flowchart TB
     classDef planned fill:#f3f4f6,stroke:#6b7280,color:#374151,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_SHARED,S_OPPORTUNITY,S_WR,S_RB,S_QB built;
-    class G_WR,G_RB,G_QB,DRAFT planned;
+    class B_FILES,S_SHARED,S_OPPORTUNITY,S_WR,S_RB,S_QB,G_WR,G_RB,G_QB built;
+    class DRAFT planned;
 ```
 
-Expected Draft features include validated volume, opportunity share, production, efficiency, scoring, and games-played context appropriate to each position. Exact feature definitions and dependencies will be established in future notebooks.
+The implemented WR, RB/FB, and QB datasets contain validated regular-season volume, opportunity share, production, efficiency, full-PPR scoring, participation, team-change context, and eligible-player percentiles. QB Gold keeps official production separate from canonical complete dropbacks and meaningful rushing.
 
 ## 3. Waiver Wire Gold lineage
 
@@ -144,6 +146,7 @@ flowchart TB
     S_WEEK --> S_WR
     S_PLAYS --> S_WR
     S_TEAM --> S_WR
+    B_FILES -->|team passing air yards| S_WR
     S_WEEK --> S_RB
     S_PLAYS --> S_RB
     S_TEAM --> S_RB
@@ -183,8 +186,10 @@ flowchart TB
     S_RB["Implemented RB weekly facts<br/>data/silver/rb_week/rb_week_2023.parquet<br/>data/silver/rb_week/rb_week_2024.parquet<br/>data/silver/rb_week/rb_week_2025.parquet"]
     S_QB["Implemented QB weekly facts<br/>data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet"]
 
-    subgraph ExistingGoldShapes["Planned reusable Gold products"]
-        G_DRAFT["gold/draft/wr_season_features<br/>gold/draft/rb_season_features<br/>gold/draft/qb_season_features<br/>grain: player_id + season<br/>physical filenames not established"]
+    subgraph ExistingGoldShapes["Reusable Gold products"]
+        G_WR_GOLD["Implemented WR Draft seasons<br/>data/gold/draft/wr_season_features/wr_season_features_2023.parquet<br/>data/gold/draft/wr_season_features/wr_season_features_2024.parquet<br/>data/gold/draft/wr_season_features/wr_season_features_2025.parquet<br/>grain: player_id + season"]
+        G_RB_GOLD["Implemented RB/FB Draft seasons<br/>data/gold/draft/rb_season_features/rb_season_features_2023.parquet<br/>data/gold/draft/rb_season_features/rb_season_features_2024.parquet<br/>data/gold/draft/rb_season_features/rb_season_features_2025.parquet<br/>grain: player_id + season"]
+        G_QB_GOLD["Implemented QB Draft seasons<br/>data/gold/draft/qb_season_features/qb_season_features_2023.parquet<br/>data/gold/draft/qb_season_features/qb_season_features_2024.parquet<br/>data/gold/draft/qb_season_features/qb_season_features_2025.parquet<br/>grain: player_id + season"]
         G_WAIVER["gold/waiver/player_weekly_trends<br/>grain: player_id + season + week<br/>physical filename not established"]
     end
 
@@ -193,25 +198,28 @@ flowchart TB
 
     SOURCE --> B_FILES --> S_CURRENT
     B_FILES --> S_OPPORTUNITY
-    S_CURRENT -.-> G_DRAFT
     S_CURRENT -.-> G_WAIVER
-    S_OPPORTUNITY -.-> G_DRAFT
     S_OPPORTUNITY -.-> G_WAIVER
     S_CURRENT --> S_WR
     S_OPPORTUNITY --> S_WR
+    B_FILES -->|team passing air yards| S_WR
     S_CURRENT --> S_RB
     S_OPPORTUNITY --> S_RB
     S_CURRENT --> S_QB
     S_OPPORTUNITY --> S_QB
-    S_WR -.-> G_DRAFT
+    S_WR --> G_WR_GOLD
     S_WR -.-> G_WAIVER
-    S_RB -.-> G_DRAFT
+    S_RB --> G_RB_GOLD
     S_RB -.-> G_WAIVER
-    S_QB -.-> G_DRAFT
+    S_QB --> G_QB_GOLD
     S_QB -.-> G_WAIVER
-    G_DRAFT -.-> EXPLORER
+    G_WR_GOLD -.-> EXPLORER
+    G_RB_GOLD -.-> EXPLORER
+    G_QB_GOLD -.-> EXPLORER
     G_WAIVER -.-> EXPLORER
-    G_DRAFT -.-> G_HISTORY
+    G_WR_GOLD -.-> G_HISTORY
+    G_RB_GOLD -.-> G_HISTORY
+    G_QB_GOLD -.-> G_HISTORY
     G_WAIVER -.-> G_HISTORY
     G_HISTORY -.-> EXPLORER
 
@@ -221,8 +229,8 @@ flowchart TB
     classDef optional fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_CURRENT,S_OPPORTUNITY,S_WR,S_RB,S_QB built;
-    class G_DRAFT,G_WAIVER,EXPLORER planned;
+    class B_FILES,S_CURRENT,S_OPPORTUNITY,S_WR,S_RB,S_QB,G_WR_GOLD,G_RB_GOLD,G_QB_GOLD built;
+    class G_WAIVER,EXPLORER planned;
     class G_HISTORY optional;
 ```
 

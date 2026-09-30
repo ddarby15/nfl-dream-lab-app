@@ -1,6 +1,6 @@
 # NFL Dream Lab Schema Flow
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 ## How to read the diagrams
 
@@ -153,15 +153,15 @@ flowchart LR
     S_WEEK["Silver player_week<br/><b>54 columns available</b>"]
     S_PLAYS["Silver standardized_plays<br/><b>56 columns available</b>"]
     S_TEAM["Silver team_week_opportunity<br/><b>24 columns available</b>"]
-    V_STATS["Bronze player_stats_weekly<br/><b>9 of 150 columns used</b>"]
+    B_STATS["Bronze player_stats_weekly<br/><b>9 of 150 columns selected</b><br/>4 build · 5 validate"]
 
     X_WR["Build WR weekly facts<br/><b>04_wr_weekly_facts.ipynb</b>"]
-    S_WR["Silver wr_week<br/><b>59 output columns</b><br/>wr_week/wr_week_{season}.parquet"]
+    S_WR["Silver wr_week<br/><b>61 output columns</b><br/>wr_week/wr_week_{season}.parquet"]
 
     S_WEEK -->|33 columns selected| X_WR
     S_PLAYS -->|14 columns selected| X_WR
     S_TEAM -->|12 columns selected| X_WR
-    V_STATS -.->|validation only| X_WR
+    B_STATS -->|team passing-air-yard denominator<br/>plus source validation| X_WR
     X_WR --> S_WR
 
     classDef bronze fill:#fed7aa,stroke:#c2410c,color:#7c2d12;
@@ -170,7 +170,7 @@ flowchart LR
     classDef silver fill:#d1fae5,stroke:#047857,color:#064e3b;
 
     class S_WEEK,S_PLAYS,S_TEAM,S_WR silver;
-    class V_STATS validation;
+    class B_STATS bronze;
     class X_WR step;
 ```
 
@@ -178,7 +178,7 @@ flowchart LR
 
 | Output dataset | Joins and shared keys | Renamed or standardized | Derived or transformed | Columns not carried forward | Grain changes or aggregation |
 |---|---|---|---|---|---|
-| `wr_week` — **59 verified columns** | Receiver and rusher aggregates join to WR rows on `player_id + game_id + team`. Team denominators join on `team + season + week`, with `game_id` agreement required. Bronze weekly stats are validation-only. | **18 generated numeric columns standardized** — nine PBP counts use nullable integers, PBP target air yards and eight shares use nullable floats. **10 PBP fields are renamed as player opportunity aggregates.** | **18 columns derived** — ten player-game opportunity aggregates and eight same-week shares. | **75 schema-producing input columns not selected** — 21 from `player_week`, 42 from standardized plays, and 12 from team-week opportunity. The nine selected Bronze validation fields are not persisted. | The WR subset retains `player_id + season + week + team`; no aggregation changes the base output grain. PBP is aggregated from play to player-game-team before the one-to-one join. |
+| `wr_week` — **61 verified columns** | Receiver and rusher aggregates join to WR rows on `player_id + game_id + team`. Shared team denominators and the Bronze-derived passing-air-yard denominator join on `team + season + week`; `game_id` agreement is required for shared Silver. | **20 generated numeric columns standardized** — nine PBP counts use nullable integers; PBP target air yards, team passing air yards, and nine shares use nullable floats. **10 PBP fields are renamed as player opportunity aggregates.** | **20 columns derived or aggregated** — ten player-game opportunity fields, Bronze `passing_air_yards` aggregated to `team_passing_air_yards`, and nine same-week shares. | **216 available input columns not selected** — 21 from `player_week`, 42 from standardized plays, 12 from team-week opportunity, and 141 from Bronze weekly stats. Five selected Bronze fields support validation but are not persisted directly. | The WR subset retains `player_id + season + week + team`; no aggregation changes the base output grain. PBP is aggregated from play to player-game-team, and passing air yards are aggregated from player-week to team-week before joining. |
 
 ## 5. Shared Silver to RB weekly facts
 
@@ -242,4 +242,83 @@ flowchart LR
 |---|---|---|---|---|---|
 | `qb_week` — **71 verified columns** | Passer, rusher, and complete-dropback aggregates join to contextual QB rows on `player_id + game_id + team`. Team denominators join on `team + season + week`, with `game_id` agreement required. | **19 generated numeric columns standardized** — 12 PBP opportunity fields use nullable integers and seven shares use nullable floats. **12 PBP fields are named as QB passing, dropback, and rushing facts.** | **19 columns derived** — 12 player-game opportunity fields and seven same-week shares. Dropback identity combines passer IDs for attempts and sacks with rusher IDs for scrambles. | **62 schema-producing input columns not selected** — 13 from `player_week`, 40 from standardized plays, and nine from team-week opportunity. | The QB subset retains `player_id + season + week + team`; no aggregation changes the base output grain. PBP is aggregated from play to player-game-team before the one-to-one joins. |
 
-Planned Gold datasets are intentionally omitted until their notebooks establish actual input selections and output column counts.
+## 7. WR weekly Silver to Draft season Gold
+
+```mermaid
+flowchart LR
+    S_WR["Silver wr_week<br/><b>61 columns available</b><br/>wr_week/wr_week_{season}.parquet"]
+
+    X_GOLD["Build WR Draft season features<br/><b>01_wr_draft_season_features.ipynb</b>"]
+    G_WR["Gold wr_season_features<br/><b>85 output columns</b><br/>draft/wr_season_features/wr_season_features_{season}.parquet"]
+
+    S_WR -->|42 columns selected| X_GOLD
+    X_GOLD --> G_WR
+
+    classDef step fill:#fef3c7,stroke:#b45309,color:#78350f;
+    classDef silver fill:#d1fae5,stroke:#047857,color:#064e3b;
+    classDef gold fill:#fef08a,stroke:#a16207,color:#713f12;
+
+    class S_WR silver;
+    class X_GOLD step;
+    class G_WR gold;
+```
+
+### Output Data Details
+
+| Output dataset | Joins and shared keys | Renamed or standardized | Derived or transformed | Columns not carried forward | Grain changes or aggregation |
+|---|---|---|---|---|---|
+| `wr_season_features` — **85 verified columns** | Two player-season aggregates—team context and season totals—join one-to-one on `player_id + season`. No external dataset joins occur. | **4 columns renamed** — canonical PBP targets, target air yards, non-kneel rushes, and team target air yards receive reader-facing Gold names. **36 columns type-standardized** — 34 nullable integers, `season`, and the eligibility Boolean. | **82 columns aggregated or derived** — all output fields except `player_id`, `season`, and `display_name`, including team context, participation, totals, nine shares, eight efficiencies, eight per-game features, five scoring fields, eligibility, and ten percentiles. | **19 available Silver columns not selected.** Weekly identifiers, source positions, opponent context, and weekly shares do not persist at the player-season grain; selected weekly flags and keys are aggregated rather than copied. | Changes from `player_id + season + week + team` to one row per `player_id + season`. Only regular-season rows enter Gold, and multi-team seasons combine while retaining team history and final team. |
+
+## 8. RB weekly Silver to Draft season Gold
+
+```mermaid
+flowchart LR
+    S_RB["Silver rb_week<br/><b>62 columns available</b><br/>rb_week/rb_week_{season}.parquet"]
+
+    X_GOLD["Build RB Draft season features<br/><b>02_rb_draft_season_features.ipynb</b>"]
+    G_RB["Gold rb_season_features<br/><b>98 output columns</b><br/>draft/rb_season_features/rb_season_features_{season}.parquet"]
+
+    S_RB -->|49 columns selected| X_GOLD
+    X_GOLD --> G_RB
+
+    classDef step fill:#fef3c7,stroke:#b45309,color:#78350f;
+    classDef silver fill:#d1fae5,stroke:#047857,color:#064e3b;
+    classDef gold fill:#fef08a,stroke:#a16207,color:#713f12;
+
+    class S_RB silver;
+    class X_GOLD step;
+    class G_RB gold;
+```
+
+### Output Data Details
+
+| Output dataset | Joins and shared keys | Renamed or standardized | Derived or transformed | Columns not carried forward | Grain changes or aggregation |
+|---|---|---|---|---|---|
+| `rb_season_features` — **98 verified columns** | Position/team context and season totals join one-to-one on `player_id + season`. No external dataset joins occur. | **5 columns renamed** — canonical non-kneel rushes, designed rushes, targets, target air yards, and team target air yards receive reader-facing Gold names. **43 columns type-standardized** — 41 nullable integers, `season`, and the eligibility Boolean. | **95 columns aggregated or derived** — all output fields except `player_id`, `season`, and `display_name`, including position/team context, participation, official and canonical workload, nine shares, 12 efficiencies, ten per-game features, five scoring fields, eligibility, and ten percentiles. | **13 available Silver columns not selected.** Weekly game context, opponent, snap percentage, team official rushes, and weekly shares do not persist at the player-season grain; selected weekly flags and validation fields are aggregated or reconciled rather than copied. | Changes from `player_id + season + week + team` to one row per `player_id + season`. Only regular-season rows enter Gold, and multi-team or multi-position seasons combine while retaining their observed paths. |
+
+## 9. QB weekly Silver to Draft season Gold
+
+```mermaid
+flowchart LR
+    S_QB["Silver qb_week<br/><b>71 columns available</b><br/>qb_week/qb_week_{season}.parquet"]
+
+    X_GOLD["Build QB Draft season features<br/><b>03_qb_draft_season_features.ipynb</b>"]
+    G_QB["Gold qb_season_features<br/><b>107 output columns</b><br/>draft/qb_season_features/qb_season_features_{season}.parquet"]
+
+    S_QB -->|59 columns selected| X_GOLD
+    X_GOLD --> G_QB
+
+    classDef step fill:#fef3c7,stroke:#b45309,color:#78350f;
+    classDef silver fill:#d1fae5,stroke:#047857,color:#064e3b;
+    classDef gold fill:#fef08a,stroke:#a16207,color:#713f12;
+
+    class S_QB silver;
+    class X_GOLD step;
+    class G_QB gold;
+```
+
+### Output Data Details
+
+| Output dataset | Joins and shared keys | Renamed or standardized | Derived or transformed | Columns not carried forward | Grain changes or aggregation |
+|---|---|---|---|---|---|
+| `qb_season_features` — **107 verified columns** | Position/team context and season totals join one-to-one on `player_id + season`. No external dataset joins occur. | **5 columns renamed** — completions, canonical pass attempts, canonical sacks, complete dropbacks, and canonical rush attempts receive reader-facing Gold names. **54 columns type-standardized** — 52 nullable integers, `season`, and the eligibility Boolean. | **104 columns aggregated or derived** — all output fields except `player_id`, `season`, and `display_name`, including team context, participation, official and canonical workload, seven shares, 12 efficiencies, 11 per-game features, six scoring fields, eligibility, and ten percentiles. | **12 available Silver columns not selected.** Weekly game type, opponent, snap percentage, receiving air-yard and yards-after-catch detail, and seven weekly shares do not persist at the player-season grain; selected weekly keys and flags are aggregated or reconciled rather than copied. | Changes from `player_id + season + week + team` to one row per `player_id + season`. Only regular-season rows enter Gold, and multi-team seasons combine while retaining their chronological team path and final team. |
