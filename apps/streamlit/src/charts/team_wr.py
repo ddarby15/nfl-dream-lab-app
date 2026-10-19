@@ -88,7 +88,7 @@ def create_opportunity_volume_figure(
             "games_observed": True,
             "player_id": False,
         },
-        title=f"{team} WR Opportunity Volume — {season}",
+        title=f"{team} Receiving Opportunity Volume — {season}",
     )
 
     figure.update_traces(
@@ -247,7 +247,7 @@ def create_receiver_role_figure(
             "games_observed",
         ],
         title=(
-            f"{team} WR Target Share vs. "
+            f"{team} Receiving Target Share vs. "
             f"Air-Yard Share — {season}"
         ),
     )
@@ -466,7 +466,7 @@ def create_target_depth_distribution_figure(
             "Season aDOT": ":.1f",
             "player_id": False,
         },
-        title=f"{team} WR Weekly aDOT Distribution — {season}",
+        title=f"{team} Weekly aDOT Distribution — {season}",
     )
 
     figure.update_traces(
@@ -692,7 +692,7 @@ def create_receiver_role_map_figure(
             "team_passing_air_yards",
             "games_observed",
         ],
-        title=f"{team} WR Role Map — {season}",
+        title=f"{team} Receiving Role Map — {season}",
     )
 
     figure.update_traces(
