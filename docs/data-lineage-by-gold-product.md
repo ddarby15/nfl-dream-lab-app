@@ -1,6 +1,6 @@
 # NFL Dream Lab Data Lineage
 
-Last updated: 2026-09-29
+Last updated: 2026-10-04
 
 ## Purpose
 
@@ -114,63 +114,49 @@ flowchart TB
     class DRAFT planned;
 ```
 
-The implemented WR, RB/FB, and QB datasets contain validated regular-season volume, opportunity share, production, efficiency, full-PPR scoring, participation, team-change context, and eligible-player percentiles. QB Gold keeps official production separate from canonical complete dropbacks and meaningful rushing.
+The implemented WR, RB/FB, and QB datasets contain validated regular-season volume, opportunity share, production, efficiency, full-PPR scoring, participation, team-change context, and eligible-player percentiles. WR Gold retains same-games team pass-attempt context; RB Gold separates official and canonical opportunities and all-team versus backfield shares; QB Gold keeps official production separate from canonical complete dropbacks and meaningful rushing.
 
 ## 3. Waiver Wire Gold lineage
 
-Waiver Wire answers whose role or opportunity is changing now. Its lineage remains weekly and time-ordered so recent trends can be calculated without using future games.
+Waiver Wire answers whose role or opportunity is changing now. The current-week position foundations are implemented; rolling comparisons and signals remain planned so they can be reviewed separately for leakage and minimum-history behavior.
 
 ```mermaid
 flowchart TB
-    SOURCE["nflverse source datasets"]
-    B_FILES["Exact nflreadpy calls → Bronze files<br/><br/>nfl.load_players()<br/>→ data/bronze/players/players.parquet<br/><br/>nfl.load_schedules(seasons=[season])<br/>→ data/bronze/schedules/schedules_2023.parquet<br/>→ data/bronze/schedules/schedules_2024.parquet<br/>→ data/bronze/schedules/schedules_2025.parquet<br/><br/>nfl.load_player_stats(seasons=[season], summary_level='week')<br/>→ data/bronze/player_stats_weekly/player_stats_weekly_2023.parquet<br/>→ data/bronze/player_stats_weekly/player_stats_weekly_2024.parquet<br/>→ data/bronze/player_stats_weekly/player_stats_weekly_2025.parquet<br/><br/>nfl.load_rosters_weekly(seasons=[season])<br/>→ data/bronze/rosters_weekly/rosters_weekly_2023.parquet<br/>→ data/bronze/rosters_weekly/rosters_weekly_2024.parquet<br/>→ data/bronze/rosters_weekly/rosters_weekly_2025.parquet<br/><br/>nfl.load_snap_counts(seasons=[season])<br/>→ data/bronze/snap_counts/snap_counts_2023.parquet<br/>→ data/bronze/snap_counts/snap_counts_2024.parquet<br/>→ data/bronze/snap_counts/snap_counts_2025.parquet<br/><br/>nfl.load_pbp(seasons=[season])<br/>→ data/bronze/pbp/pbp_2023.parquet<br/>→ data/bronze/pbp/pbp_2024.parquet<br/>→ data/bronze/pbp/pbp_2025.parquet"]
+    S_WR["Implemented WR Silver<br/>wr_week_{season}.parquet<br/>62 columns<br/>grain: player_id + season + week + team"]
+    S_RB["Implemented RB/FB Silver<br/>rb_week_{season}.parquet<br/>68 columns<br/>grain: player_id + season + week + team"]
+    S_QB["Implemented QB Silver<br/>qb_week_{season}.parquet<br/>71 columns<br/>grain: player_id + season + week + team"]
 
-    subgraph Silver["Relevant Silver foundation"]
-        S_WEEK["data/silver/player_week/player_week_2023.parquet<br/>data/silver/player_week/player_week_2024.parquet<br/>data/silver/player_week/player_week_2025.parquet<br/>statistics, participation, and context"]
-        S_GAME["data/silver/player_game_participation/player_game_participation_2023.parquet<br/>data/silver/player_game_participation/player_game_participation_2024.parquet<br/>data/silver/player_game_participation/player_game_participation_2025.parquet"]
-        S_PLAYS["data/silver/standardized_plays/standardized_plays_2023.parquet<br/>data/silver/standardized_plays/standardized_plays_2024.parquet<br/>data/silver/standardized_plays/standardized_plays_2025.parquet"]
-        S_TEAM["data/silver/team_week_opportunity/team_week_opportunity_2023.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2024.parquet<br/>data/silver/team_week_opportunity/team_week_opportunity_2025.parquet"]
-        S_WR["data/silver/wr_week/wr_week_2023.parquet<br/>data/silver/wr_week/wr_week_2024.parquet<br/>data/silver/wr_week/wr_week_2025.parquet<br/>WR production, opportunity, and shares"]
-        S_RB["data/silver/rb_week/rb_week_2023.parquet<br/>data/silver/rb_week/rb_week_2024.parquet<br/>data/silver/rb_week/rb_week_2025.parquet<br/>RB production, opportunity, and shares"]
-        S_QB["data/silver/qb_week/qb_week_2023.parquet<br/>data/silver/qb_week/qb_week_2024.parquet<br/>data/silver/qb_week/qb_week_2025.parquet<br/>QB production, dropbacks, and meaningful rushing"]
-    end
+    X_WR["Build WR current-week Waiver features<br/>04_wr_waiver_weekly_trends.ipynb"]
+    X_RB["Build RB/FB current-week Waiver features<br/>05_rb_waiver_weekly_trends.ipynb"]
+    X_QB["Build QB current-week Waiver features<br/>06_qb_waiver_weekly_trends.ipynb"]
 
-    TRENDS["Time-safe feature calculations<br/>current week · prior 3 weeks · season to date"]
-    G_WAIVER["gold/waiver/player_weekly_trends<br/>grain: player_id + season + week<br/>physical filename not established"]
-    WAIVER["Waiver Wire<br/>role changes and transparent signals"]
+    G_WR["Implemented WR Waiver foundation<br/>data/gold/waiver/wr_weekly_trends/<br/>wr_weekly_trends_{season}.parquet<br/>80 columns · 8,475 rows<br/>grain: player_id + season + week"]
+    G_RB["Implemented RB/FB Waiver foundation<br/>data/gold/waiver/rb_weekly_trends/<br/>rb_weekly_trends_{season}.parquet<br/>99 columns · 5,542 rows<br/>grain: player_id + season + week"]
+    G_QB["Implemented QB Waiver foundation<br/>data/gold/waiver/qb_weekly_trends/<br/>qb_weekly_trends_{season}.parquet<br/>102 columns · 2,071 rows<br/>grain: player_id + season + week"]
 
-    SOURCE --> B_FILES
-    B_FILES --> S_WEEK
-    B_FILES --> S_GAME
-    B_FILES --> S_PLAYS --> S_TEAM
-    S_WEEK --> S_WR
-    S_PLAYS --> S_WR
-    S_TEAM --> S_WR
-    B_FILES -->|team passing air yards| S_WR
-    S_WEEK --> S_RB
-    S_PLAYS --> S_RB
-    S_TEAM --> S_RB
-    S_WEEK --> S_QB
-    S_PLAYS --> S_QB
-    S_TEAM --> S_QB
-    S_WEEK -.-> TRENDS
-    S_GAME -.-> TRENDS
-    S_TEAM -.-> TRENDS
-    S_WR -.-> TRENDS
-    S_RB -.-> TRENDS
-    S_QB -.-> TRENDS
-    TRENDS -.-> G_WAIVER -.-> WAIVER
+    ROLLING["Planned time-safe extension<br/>prior 3 calendar weeks · season to date<br/>history counts · comparisons · transparent signals"]
+    WAIVER["Planned Waiver Wire application<br/>role changes and transparent signals"]
 
-    classDef source fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
+    S_WR --> X_WR --> G_WR
+    S_RB --> X_RB --> G_RB
+    S_QB --> X_QB --> G_QB
+    G_WR -.-> ROLLING
+    G_RB -.-> ROLLING
+    G_QB -.-> ROLLING
+    ROLLING -.-> WAIVER
+
     classDef built fill:#d1fae5,stroke:#047857,color:#064e3b;
+    classDef step fill:#fef3c7,stroke:#b45309,color:#78350f;
     classDef planned fill:#f3f4f6,stroke:#6b7280,color:#374151,stroke-dasharray:5 5;
 
-    class SOURCE source;
-    class B_FILES,S_WEEK,S_GAME,S_PLAYS,S_TEAM,S_WR,S_RB,S_QB built;
-    class TRENDS,G_WAIVER,WAIVER planned;
+    class S_WR,S_RB,S_QB,G_WR,G_RB,G_QB built;
+    class X_WR,X_RB,X_QB step;
+    class ROLLING,WAIVER planned;
 ```
 
-The rolling feature step must use only the current and earlier weeks available at each row. Initial signals should remain transparent—for example, rising usage or high opportunity with low production—rather than becoming an unexplained composite score.
+The current Gold notebooks select only their position Silver facts, filter to regular-season rows, aggregate from player-team-week to player-week, recompute ratios from components, apply full-PPR scoring, and write season partitions. No current data needs same-week multi-team consolidation, but ordered game, team, and opponent fields preserve that future case without arbitrarily choosing a singular team.
+
+The planned rolling extension will use the prior three NFL calendar weeks, retain every current-week row, expose contributing-history counts, and leave comparisons or signals null until sufficient history exists. It must use only current and earlier weeks at each row. Initial signals should remain transparent—for example, rising usage or high opportunity with low production—rather than becoming an unexplained composite score. See `docs/waiver-metric-contracts.md` for the detailed contract.
 
 ## 4. Player Explorer Gold lineage
 
@@ -190,7 +176,7 @@ flowchart TB
         G_WR_GOLD["Implemented WR Draft seasons<br/>data/gold/draft/wr_season_features/wr_season_features_2023.parquet<br/>data/gold/draft/wr_season_features/wr_season_features_2024.parquet<br/>data/gold/draft/wr_season_features/wr_season_features_2025.parquet<br/>grain: player_id + season"]
         G_RB_GOLD["Implemented RB/FB Draft seasons<br/>data/gold/draft/rb_season_features/rb_season_features_2023.parquet<br/>data/gold/draft/rb_season_features/rb_season_features_2024.parquet<br/>data/gold/draft/rb_season_features/rb_season_features_2025.parquet<br/>grain: player_id + season"]
         G_QB_GOLD["Implemented QB Draft seasons<br/>data/gold/draft/qb_season_features/qb_season_features_2023.parquet<br/>data/gold/draft/qb_season_features/qb_season_features_2024.parquet<br/>data/gold/draft/qb_season_features/qb_season_features_2025.parquet<br/>grain: player_id + season"]
-        G_WAIVER["gold/waiver/player_weekly_trends<br/>grain: player_id + season + week<br/>physical filename not established"]
+        G_WAIVER["Implemented current-week Waiver Gold<br/>data/gold/waiver/wr_weekly_trends/wr_weekly_trends_{season}.parquet<br/>data/gold/waiver/rb_weekly_trends/rb_weekly_trends_{season}.parquet<br/>data/gold/waiver/qb_weekly_trends/qb_weekly_trends_{season}.parquet<br/>grain: player_id + season + week<br/>rolling extension planned"]
     end
 
     G_HISTORY["Optional gold/player/player_history<br/>grain: player_id + season + week<br/>physical filename not established"]
@@ -198,8 +184,8 @@ flowchart TB
 
     SOURCE --> B_FILES --> S_CURRENT
     B_FILES --> S_OPPORTUNITY
-    S_CURRENT -.-> G_WAIVER
-    S_OPPORTUNITY -.-> G_WAIVER
+    S_CURRENT --> G_WAIVER
+    S_OPPORTUNITY --> G_WAIVER
     S_CURRENT --> S_WR
     S_OPPORTUNITY --> S_WR
     B_FILES -->|team passing air yards| S_WR
@@ -208,11 +194,11 @@ flowchart TB
     S_CURRENT --> S_QB
     S_OPPORTUNITY --> S_QB
     S_WR --> G_WR_GOLD
-    S_WR -.-> G_WAIVER
+    S_WR --> G_WAIVER
     S_RB --> G_RB_GOLD
-    S_RB -.-> G_WAIVER
+    S_RB --> G_WAIVER
     S_QB --> G_QB_GOLD
-    S_QB -.-> G_WAIVER
+    S_QB --> G_WAIVER
     G_WR_GOLD -.-> EXPLORER
     G_RB_GOLD -.-> EXPLORER
     G_QB_GOLD -.-> EXPLORER
@@ -229,8 +215,8 @@ flowchart TB
     classDef optional fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,stroke-dasharray:5 5;
 
     class SOURCE source;
-    class B_FILES,S_CURRENT,S_OPPORTUNITY,S_WR,S_RB,S_QB,G_WR_GOLD,G_RB_GOLD,G_QB_GOLD built;
-    class G_WAIVER,EXPLORER planned;
+    class B_FILES,S_CURRENT,S_OPPORTUNITY,S_WR,S_RB,S_QB,G_WR_GOLD,G_RB_GOLD,G_QB_GOLD,G_WAIVER built;
+    class EXPLORER planned;
     class G_HISTORY optional;
 ```
 

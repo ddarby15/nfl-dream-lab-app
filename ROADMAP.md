@@ -10,7 +10,7 @@ This roadmap is the source of truth for the intended architecture and developmen
 
 **Current phase: Phase 1 — Notebook Data Pipeline Prototyping**
 
-Application and production-pipeline implementation have not started. The immediate goal is to understand the source data and validate useful football and fantasy metrics in notebooks.
+Phase 1 pipeline prototyping remains active. A local Streamlit team/player prototype already exists and helps validate Gold needs; production pipeline implementation has not started.
 
 ## Product and Development Philosophy
 
@@ -112,9 +112,15 @@ Candidate datasets:
 
 Waiver analysis is a weekly and rolling-window problem. It should compare current-week, recent-window, and season-to-date opportunity and production rather than rank only the previous week's fantasy points.
 
-Candidate dataset:
+Implemented position-specific current-week foundations:
 
-- `gold/waiver/player_weekly_trends` at `player_id + season + week`
+- `gold/waiver/wr_weekly_trends` at `player_id + season + week`
+- `gold/waiver/rb_weekly_trends` at `player_id + season + week`
+- `gold/waiver/qb_weekly_trends` at `player_id + season + week`
+
+The position-specific shape keeps WR receiving opportunity, RB backfield control, and QB dropback and rushing concepts explicit. A lightweight combined application view may be added later only if Streamlit needs a cross-position candidate list.
+
+The current files preserve auditable weekly components but do not yet contain rolling windows or signals. The approved next extension uses prior NFL calendar weeks, retains every current-week row, and leaves comparisons null until sufficient history exists.
 
 Initial signals should be transparent and rule-based, such as rising usage or high opportunity with low production. Thresholds and underlying measures must remain visible to the user.
 
@@ -218,9 +224,9 @@ The executed validation is in `notebooks/silver/01_player_identity_participation
 - Explicitly define meaningful QB rush attempts and the treatment of kneel-downs.
 - Confirm that position-specific facts reuse the shared Silver foundation.
 
-`notebooks/silver/04_wr_weekly_facts.ipynb` creates 8,881 WR-week rows across three season-partitioned files at `player_id + season + week + team`. It preserves nullable weekly-stat evidence, adds observed PBP opportunity counts, attaches team denominators, and validates eight transparent same-week shares.
+`notebooks/silver/04_wr_weekly_facts.ipynb` creates 8,881 WR-week rows across three 62-column season-partitioned files at `player_id + season + week + team`. It preserves nullable weekly-stat evidence, adds observed PBP opportunity counts, attaches team denominators including team pass attempts, and validates nine transparent same-week shares.
 
-`notebooks/silver/05_rb_weekly_facts.ipynb` creates 5,826 contextual RB/FB player-weeks across three 62-column season partitions at the same weekly grain. It separates official production from canonical rushing and receiving opportunity, validates nine same-week shares, and retains the previously documented 2024 Week 15 source disagreement instead of silently reconciling it.
+`notebooks/silver/05_rb_weekly_facts.ipynb` creates 5,826 contextual RB/FB player-weeks across three 68-column season partitions at the same weekly grain. It separates official production from canonical rushing and receiving opportunity, validates 12 same-week shares including three explicit contextual RB/FB backfield-control measures, and retains the previously documented 2024 Week 15 source disagreement instead of silently reconciling it.
 
 `notebooks/silver/06_qb_weekly_facts.ipynb` completes the milestone with 2,163 contextual QB player-weeks across three 71-column season partitions. It assigns every canonical dropback through explicit passer-or-rusher identity, separates kneels, scrambles, designed runs, and meaningful QB rushes, validates seven same-week shares, and retains the previously documented 2025 Week 2 passing-attempt disagreement.
 
@@ -233,19 +239,31 @@ The executed validation is in `notebooks/silver/01_player_identity_participation
 - Validate calculations against recognizable player seasons and source totals.
 - Document every metric's numerator, denominator, grain, and null-handling behavior.
 
-`notebooks/gold/01_wr_draft_season_features.ipynb` creates the first Draft Gold product from the amended 61-column WR Silver facts. It writes 753 regular-season WR player profiles across three 85-column season partitions at `player_id + season`, combines multi-team seasons, retains all observed WR seasons, applies explicit full-PPR scoring, and limits within-season percentiles to the approved eight-game and 40-target comparison population.
+`notebooks/gold/01_wr_draft_season_features.ipynb` creates the first Draft Gold product from the amended 62-column WR Silver facts. It writes 753 regular-season WR player profiles across three 87-column season partitions at `player_id + season`, combines multi-team seasons, retains all observed WR seasons, adds same-games team pass attempts per game, applies explicit full-PPR scoring, and limits within-season percentiles to the approved eight-game and 40-target comparison population.
 
-`notebooks/gold/02_rb_draft_season_features.ipynb` extends the same auditable season-profile pattern to contextual RB and FB facts. It writes 498 regular-season player profiles across three 98-column season partitions, preserves official carries separately from canonical non-kneel and designed rushing opportunity, applies the shared full-PPR contract, and limits percentiles to seasons with at least eight observed games and 50 total opportunities.
+`notebooks/gold/02_rb_draft_season_features.ipynb` extends the same auditable season-profile pattern to contextual RB and FB facts. It writes 498 regular-season player profiles across three 106-column season partitions, preserves official carries and official opportunities separately from canonical workload, adds contextual RB/FB backfield-control shares, applies the shared full-PPR contract, and limits percentiles to seasons with at least eight observed games and 50 canonical total opportunities.
 
-`notebooks/gold/03_qb_draft_season_features.ipynb` completes the historical Draft Gold milestone with 245 regular-season QB profiles across three 107-column season partitions. It preserves official production separately from canonical complete dropbacks and meaningful rushing, applies the approved four-point passing-touchdown full-PPR contract, and limits percentiles to seasons with at least eight observed games and 200 complete dropbacks.
+`notebooks/gold/03_qb_draft_season_features.ipynb` completes the historical Draft Gold milestone with 245 regular-season QB profiles across three 109-column season partitions. It preserves official production separately from canonical complete dropbacks and meaningful rushing, adds red-zone and goal-line rushing attempts per game, applies the approved four-point passing-touchdown full-PPR contract, and limits percentiles to seasons with at least eight observed games and 200 complete dropbacks.
 
 #### 7. Weekly Waiver and Player Explorer features
+
+**Status: In progress — current-week Waiver foundations completed 2026-10-04**
 
 - Build player-week features supporting current-week, rolling three-week, and season-to-date views.
 - Compare recent opportunity with season-to-date baselines.
 - Prevent future-week leakage in every rolling calculation.
 - Prototype transparent, rule-based signals only after their component metrics validate.
 - Determine whether Player Explorer needs a separate Gold table or can consume shared views directly.
+
+`notebooks/gold/04_wr_waiver_weekly_trends.ipynb` writes 8,475 regular-season WR player-weeks across three 80-column partitions at `player_id + season + week`. It preserves 1,019 rows without weekly-stat evidence, recomputes current-week opportunity shares and efficiencies from components, retains team pass-attempt context, applies the shared full-PPR contract, and deliberately excludes rolling fields pending review.
+
+`notebooks/gold/05_rb_waiver_weekly_trends.ipynb` writes 5,542 regular-season RB/FB player-weeks across three 99-column partitions at the same grain. It preserves 687 rows without weekly-stat evidence, separates official from canonical opportunities, retains all-team and contextual backfield shares, applies the shared full-PPR contract, and deliberately excludes rolling fields pending review.
+
+`notebooks/gold/06_qb_waiver_weekly_trends.ipynb` writes 2,071 regular-season QB player-weeks across three 102-column partitions at the same grain. It preserves 50 rows without weekly-stat evidence, separates official production from complete dropbacks and meaningful rushing, applies the approved QB full-PPR contract, and deliberately excludes rolling fields pending review.
+
+For team and player exploration, activity-based Gold now complements (rather than replaces) these position-specific Draft and Waiver products. `notebooks/gold/08_receiving_opportunity.ipynb` publishes player-game receiving facts for weekly trends and a team-season profile for comparison charts. Receiving includes any targeted position plus identified WR/TE/RB/FB zero-target offensive-snap games; the team-season profile exposes observed-game and full-team-season shares. Rushing and Passing Gold designs follow after notebook review. Streamlit consumers are not yet migrated.
+
+All three current-week products preserve ordered game, team, and opponent context for future same-week multi-record cases. Current 2023–2025 regular-season data contains no multi-team player-weeks. The approved rolling contract uses the prior three NFL calendar weeks rather than the player's last three active games; all rows remain retained, while comparisons and signals stay null until their required history is available. Detailed definitions are in `docs/waiver-metric-contracts.md`.
 
 #### 8. Cross-layer validation and starter publication
 
